@@ -8,6 +8,10 @@ from masterList import MasterList
 from playlistView import PlaylistView
 from utilities import *
 
+'''
+QListWidgetItem.data(_) <- takes a role enum, which is 0x0100 for user-controlled data
+'''
+
 
 class MasterWidget(QSplitter):
     def __init__(self, app_name):
@@ -17,14 +21,7 @@ class MasterWidget(QSplitter):
 
         self.addWidget(self.master_list)
         for playlistFile in self.config['openPlaylists']:
-            self.addWidget(
-                PlaylistView(
-                    playlistFile=playlistFile,
-                    remove_self=lambda filepath: self.config['openPlaylists'].remove(filepath),
-                    take_selected_songs=self.master_list.take_selected_songs,
-                    update_changes=self.master_list.load_song_list,
-                )
-            )
+            self.addWidget(self.create_playlist(playlistFile))
         self.master_list.load_song_list()
 
     #########################################################
@@ -45,12 +42,7 @@ class MasterWidget(QSplitter):
     def open_playlist(self):
         playlistFile = QFileDialog.getOpenFileName(self, "Select Playlist")[0]
         if file_path_exists(playlistFile) and len(playlistFile) > 0 and self.config['openPlaylists'].count(playlistFile) == 0:
-            playlist = PlaylistView(
-                playlistFile=playlistFile,
-                remove_self=lambda filepath: self.config['openPlaylists'].remove(filepath),
-                take_selected_songs=self.master_list.take_selected_songs,
-                update_changes=self.master_list.load_song_list,
-            )
+            playlist = self.create_playlist(playlistFile)
             self.addWidget(playlist)
             self.config['openPlaylists'].append(playlistFile)
             self.write_config_changes()
@@ -66,3 +58,11 @@ class MasterWidget(QSplitter):
         with open(self.appdata.main_config_path, 'w') as configFile:
             json.dump(self.config, configFile)
         self.master_list.load_song_list()
+
+    def create_playlist(self, file_path):
+        return PlaylistView(
+            playlistFile=file_path,
+            remove_self=lambda filepath: self.config['openPlaylists'].remove(filepath),
+            take_selected_songs=self.master_list.song_list_widget.pop_selected_song_items,
+            update_changes=self.master_list.load_song_list,
+        )

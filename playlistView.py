@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import *
-from utilities import clean_string
+from utilities import *
+from songList import SongListWidget
 
 
 class PlaylistView(QWidget):
@@ -7,17 +8,16 @@ class PlaylistView(QWidget):
         super(PlaylistView, self).__init__()
         self.file = playlistFile
 
-        self.list_widget = QListWidget()
+        self.song_list_widget = SongListWidget()
+
         with open(self.file, 'r', encoding='utf-8') as playlist:
             for song in [clean_string(line) for line in playlist.readlines()]:
-                listItem = QListWidgetItem()
-                listItem.setText(song[song.rindex('/') + 1:])
-                listItem.setData(0x0100, song)
-                self.list_widget.addItem(listItem)
+                self.song_list_widget.add_song(song)
 
         buttons = QWidget()
         button_layout = QHBoxLayout(buttons)
 
+        # close button setup
         button = QPushButton(text='Close')
         button.setMinimumHeight(40)
         button.clicked.connect(lambda: [
@@ -27,19 +27,21 @@ class PlaylistView(QWidget):
         ])
         button_layout.addWidget(button)
 
+        # add song button setup
         button = QPushButton(text='Add')
         button.setMinimumHeight(40)
         button.clicked.connect(lambda: [
-            [self.list_widget.addItem(item) for item in take_selected_songs()],
-            self.list_widget.sortItems(),
+            [self.song_list_widget.addItem(item) for item in take_selected_songs()],
+            self.song_list_widget.sortItems(),
             self.write_changes(),
         ])
         button_layout.addWidget(button)
 
+        # remove song button setup
         button = QPushButton(text='Remove')
         button.setMinimumHeight(40)
         button.clicked.connect(lambda: [
-            self.remove_selected_items(),
+            self.song_list_widget.pop_selected_song_items(),
             self.write_changes(),
             update_changes()
         ])
@@ -47,13 +49,10 @@ class PlaylistView(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel(self.file))
-        layout.addWidget(self.list_widget)
+        layout.addWidget(self.song_list_widget)
         layout.addWidget(buttons)
-
-    def remove_selected_items(self):
-        return [self.list_widget.takeItem(item.row()) for item in self.list_widget.selectedIndexes()]
 
     def write_changes(self):
         with open(self.file, 'w', encoding='utf-8') as playlist:
-            for line in [self.list_widget.item(index).data(0x0100) for index in range(self.list_widget.count())]:
+            for line in self.song_list_widget.get_song_paths():
                 playlist.write(line + '\n')
