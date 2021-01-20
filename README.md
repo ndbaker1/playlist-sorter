@@ -17,3 +17,6 @@ using `pyinstaller` build the executable with
 ```
 pyinstaller --onefile --windowed --icon=app.ico --name="Playlist Set Manager" --add-data 'app.ico;.' app.py
 ```
+> Note:  
+_--add-data 'app.ico;.' for Windows_  
+_--add-data 'app.ico:.' for Linux_
