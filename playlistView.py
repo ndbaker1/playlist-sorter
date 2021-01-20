@@ -10,7 +10,10 @@ class PlaylistView(QWidget):
         self.list_widget = QListWidget()
         with open(self.file, 'r', encoding='utf-8') as playlist:
             for song in [clean_string(line) for line in playlist.readlines()]:
-                self.list_widget.addItem(song)
+                listItem = QListWidgetItem()
+                listItem.setText(song[song.rindex('/') + 1:])
+                listItem.setData(0x0100, song)
+                self.list_widget.addItem(listItem)
 
         buttons = QWidget()
         button_layout = QHBoxLayout(buttons)
@@ -27,7 +30,7 @@ class PlaylistView(QWidget):
         button = QPushButton(text='Add')
         button.setMinimumHeight(40)
         button.clicked.connect(lambda: [
-            self.list_widget.addItems(take_selected_songs()),
+            [self.list_widget.addItem(item) for item in take_selected_songs()],
             self.list_widget.sortItems(),
             self.write_changes(),
         ])
@@ -52,5 +55,5 @@ class PlaylistView(QWidget):
 
     def write_changes(self):
         with open(self.file, 'w', encoding='utf-8') as playlist:
-            for line in [self.list_widget.item(index).text() for index in range(self.list_widget.count())]:
+            for line in [self.list_widget.item(index).data(0x0100) for index in range(self.list_widget.count())]:
                 playlist.write(line + '\n')

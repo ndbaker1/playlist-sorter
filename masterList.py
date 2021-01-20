@@ -8,20 +8,23 @@ MUSIC_FORMATS = ['mp3', 'm4a']
 
 
 class MasterList(QWidget):
-    def __init__(self, masterComponent):
+    def __init__(self, masterComponent, song_directory):
         super(MasterList, self).__init__()
         self.master_component = masterComponent
+        self.song_directory = song_directory
         # song list
         self.list_widget = QListWidget()
+        self.directory_label = QLabel()
         # layout
         layout = QVBoxLayout(self)
+        layout.addWidget(self.directory_label)
         layout.addWidget(self.list_widget)
         layout.addWidget(
             Controls(
                 update_song_directory=self.master_component.update_song_directory,
                 open_playlist=self.master_component.open_playlist,
                 play_current_song=lambda: play_song(
-                    self.list_widget.selectedItems()[0].text()
+                    self.list_widget.selectedItems()[0].data(0x0100)
                     if len(self.list_widget.selectedItems()) > 0
                     else None
                 )
@@ -29,11 +32,16 @@ class MasterList(QWidget):
         )
 
     def take_selected_songs(self) -> list:
-        return [self.list_widget.takeItem(item.row()).text() for item in self.list_widget.selectedIndexes()]
+        return [self.list_widget.takeItem(item.row()) for item in self.list_widget.selectedIndexes()]
 
     def load_song_list(self) -> None:
+        self.directory_label.setText(self.master_component.config['songDirectory'])
         self.list_widget.clear()
-        self.list_widget.addItems(self.get_unassigned_songs())
+        for song in self.get_unassigned_songs():
+            listItem = QListWidgetItem()
+            listItem.setText(song[song.rindex('/') + 1:])
+            listItem.setData(0x0100, song)
+            self.list_widget.addItem(listItem)
 
     def get_unassigned_songs(self) -> list:
         songs = [

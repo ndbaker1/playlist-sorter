@@ -6,14 +6,14 @@ from PyQt5.QtWidgets import *
 
 from masterList import MasterList
 from playlistView import PlaylistView
-from utilities import file_path_exists
+from utilities import *
 
 
 class MasterWidget(QSplitter):
     def __init__(self, app_name):
         super(MasterWidget, self).__init__()
         self.init_config(app_name)
-        self.master_list = MasterList(self)
+        self.master_list = MasterList(self, self.config['songDirectory'])
 
         self.addWidget(self.master_list)
         for playlistFile in self.config['openPlaylists']:
@@ -44,7 +44,7 @@ class MasterWidget(QSplitter):
 
     def open_playlist(self):
         playlistFile = QFileDialog.getOpenFileName(self, "Select Playlist")[0]
-        if file_path_exists(playlistFile) and self.config['openPlaylists'].count(playlistFile) == 0:
+        if file_path_exists(playlistFile) and len(playlistFile) > 0 and self.config['openPlaylists'].count(playlistFile) == 0:
             playlist = PlaylistView(
                 playlistFile=playlistFile,
                 remove_self=lambda filepath: self.config['openPlaylists'].remove(filepath),
@@ -57,7 +57,7 @@ class MasterWidget(QSplitter):
 
     def update_song_directory(self):
         newSongDirectory = str(QFileDialog.getExistingDirectory(
-            self, "Select Directory")) + '/'
+            self, "Select Directory",  self.config['songDirectory'])) + '/'
         if len(newSongDirectory) > 1 and file_path_exists(newSongDirectory):
             self.config['songDirectory'] = newSongDirectory
             self.write_config_changes()
