@@ -1,7 +1,9 @@
 # Playlist Set Manager
-
 A Playlist Editor for `.m3u` files, which treats playlists as mutually exclusive so that you can sort without overlap.  
 > Exclusion occures with open playlists, so there are ways to create intentional overlap between playlists that are not related.
+
+## Libs
+`PyQt5` was the GUI library for this project
 
 ## Setup
 To install all required packages/imports
