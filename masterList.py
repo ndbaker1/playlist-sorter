@@ -2,7 +2,7 @@ import re
 from glob import glob
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
 from songList import SongListWidget
-from utilities import clean_string
+from utilities import clean_string, file_path_exists
 
 # The supported audio formats
 MUSIC_FORMATS = ['mp3', 'm4a', 'flac']
@@ -43,10 +43,12 @@ class MasterList(QWidget):
     '''
 
     def load_song_list(self) -> None:
-        self.directory_label.setText(self.master_component.config['songDirectory'])
-        self.song_list_widget.clear()
-        for song in self.get_unassigned_songs():
-            self.song_list_widget.add_song(song)
+        # only allow loading if a song directory is found
+        if len(self.master_component.config['songDirectory']) > 0 and file_path_exists(self.master_component.config['songDirectory']):
+            self.directory_label.setText(self.master_component.config['songDirectory'])
+            self.song_list_widget.clear()
+            for song in self.get_unassigned_songs():
+                self.song_list_widget.add_song(song)
 
     '''
     Finds all file paths with the correct audio extension,

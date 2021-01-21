@@ -43,6 +43,12 @@ class MasterWidget(QSplitter):
         if configFileSize > 0:
             with open(self.appdata.main_config_path, 'r') as configFile:
                 self.config = json.load(configFile)
+                for listfile in self.config['openPlaylists']:
+                    if not file_path_exists(listfile):
+                        self.config['openPlaylists'].remove(listfile)
+            # write and possible changes
+            with open(self.appdata.main_config_path, 'w') as configFile:
+                json.dump(self.config, configFile)
         else:
             with open(self.appdata.main_config_path, 'w') as configFile:
                 self.config = {'songDirectory': '', 'openPlaylists': []}
